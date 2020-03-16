@@ -7,9 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		4B358512241E1616008F2780 /* Payone_iOS_Framework.h in Headers */ = {isa = PBXBuildFile; fileRef = 4B358510241E1616008F2780 /* Payone_iOS_Framework.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		4B35851C241E1645008F2780 /* PayoneManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B35851A241E1645008F2780 /* PayoneManager.swift */; };
-		4B35851D241E1645008F2780 /* PayoneConstant.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B35851B241E1645008F2780 /* PayoneConstant.swift */; };
+		4B4A1E15241F7B660078E86D /* Payone_iOS_Framework.h in Headers */ = {isa = PBXBuildFile; fileRef = 4B4A1E11241F7B650078E86D /* Payone_iOS_Framework.h */; };
+		4B4A1E16241F7B660078E86D /* PayoneManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B4A1E12241F7B660078E86D /* PayoneManager.swift */; };
+		4B4A1E17241F7B660078E86D /* PayoneConstant.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B4A1E13241F7B660078E86D /* PayoneConstant.swift */; };
+		4B4A1E18241F7B660078E86D /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 4B4A1E14241F7B660078E86D /* Info.plist */; };
 		4BFF820B241E1DD2002A80A3 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4BFF820A241E1DD2002A80A3 /* AppDelegate.swift */; };
 		4BFF820D241E1DD2002A80A3 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4BFF820C241E1DD2002A80A3 /* SceneDelegate.swift */; };
 		4BFF820F241E1DD2002A80A3 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4BFF820E241E1DD2002A80A3 /* ViewController.swift */; };
@@ -33,12 +34,12 @@
 
 /* Begin PBXFileReference section */
 		4B35850D241E1616008F2780 /* PayOneSDK.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = PayOneSDK.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		4B358510241E1616008F2780 /* Payone_iOS_Framework.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Payone_iOS_Framework.h; sourceTree = "<group>"; };
-		4B358511241E1616008F2780 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		4B35851A241E1645008F2780 /* PayoneManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PayoneManager.swift; sourceTree = "<group>"; };
-		4B35851B241E1645008F2780 /* PayoneConstant.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PayoneConstant.swift; sourceTree = "<group>"; };
 		4B4A1E07241F75A00078E86D /* PubNub.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = PubNub.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		4B4A1E09241F75BD0078E86D /* PubNub.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = PubNub.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		4B4A1E11241F7B650078E86D /* Payone_iOS_Framework.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Payone_iOS_Framework.h; sourceTree = "<group>"; };
+		4B4A1E12241F7B660078E86D /* PayoneManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PayoneManager.swift; sourceTree = "<group>"; };
+		4B4A1E13241F7B660078E86D /* PayoneConstant.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PayoneConstant.swift; sourceTree = "<group>"; };
+		4B4A1E14241F7B660078E86D /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		4BFF8208241E1DD2002A80A3 /* PayOneExampleApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PayOneExampleApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4BFF820A241E1DD2002A80A3 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		4BFF820C241E1DD2002A80A3 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -85,7 +86,7 @@
 		4B358503241E1616008F2780 = {
 			isa = PBXGroup;
 			children = (
-				4B35850F241E1616008F2780 /* Payone-iOS-Framework */,
+				4B4A1E10241F7B650078E86D /* Sources */,
 				4BFF8209241E1DD2002A80A3 /* PayOneExampleApp */,
 				4BFF8221241E208D002A80A3 /* Payone_iOS_FrameworkTests */,
 				4B35850E241E1616008F2780 /* Products */,
@@ -104,21 +105,13 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		4B35850F241E1616008F2780 /* Payone-iOS-Framework */ = {
+		4B4A1E10241F7B650078E86D /* Sources */ = {
 			isa = PBXGroup;
 			children = (
-				4B358519241E1645008F2780 /* Sources */,
-				4B358510241E1616008F2780 /* Payone_iOS_Framework.h */,
-				4B358511241E1616008F2780 /* Info.plist */,
-			);
-			path = "Payone-iOS-Framework";
-			sourceTree = "<group>";
-		};
-		4B358519241E1645008F2780 /* Sources */ = {
-			isa = PBXGroup;
-			children = (
-				4B35851A241E1645008F2780 /* PayoneManager.swift */,
-				4B35851B241E1645008F2780 /* PayoneConstant.swift */,
+				4B4A1E11241F7B650078E86D /* Payone_iOS_Framework.h */,
+				4B4A1E12241F7B660078E86D /* PayoneManager.swift */,
+				4B4A1E13241F7B660078E86D /* PayoneConstant.swift */,
+				4B4A1E14241F7B660078E86D /* Info.plist */,
 			);
 			path = Sources;
 			sourceTree = "<group>";
@@ -172,7 +165,7 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				4B358512241E1616008F2780 /* Payone_iOS_Framework.h in Headers */,
+				4B4A1E15241F7B660078E86D /* Payone_iOS_Framework.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -280,6 +273,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4B4A1E18241F7B660078E86D /* Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -349,8 +343,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				4B35851C241E1645008F2780 /* PayoneManager.swift in Sources */,
-				4B35851D241E1645008F2780 /* PayoneConstant.swift in Sources */,
+				4B4A1E17241F7B660078E86D /* PayoneConstant.swift in Sources */,
+				4B4A1E16241F7B660078E86D /* PayoneManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
