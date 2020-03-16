@@ -7,10 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		4B1FFA0E241F8172005A8299 /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 4B4A1E14241F7B660078E86D /* Info.plist */; };
 		4B4A1E15241F7B660078E86D /* Payone_iOS_Framework.h in Headers */ = {isa = PBXBuildFile; fileRef = 4B4A1E11241F7B650078E86D /* Payone_iOS_Framework.h */; };
 		4B4A1E16241F7B660078E86D /* PayoneManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B4A1E12241F7B660078E86D /* PayoneManager.swift */; };
 		4B4A1E17241F7B660078E86D /* PayoneConstant.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B4A1E13241F7B660078E86D /* PayoneConstant.swift */; };
-		4B4A1E18241F7B660078E86D /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 4B4A1E14241F7B660078E86D /* Info.plist */; };
 		4BFF820B241E1DD2002A80A3 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4BFF820A241E1DD2002A80A3 /* AppDelegate.swift */; };
 		4BFF820D241E1DD2002A80A3 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4BFF820C241E1DD2002A80A3 /* SceneDelegate.swift */; };
 		4BFF820F241E1DD2002A80A3 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4BFF820E241E1DD2002A80A3 /* ViewController.swift */; };
@@ -273,7 +273,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				4B4A1E18241F7B660078E86D /* Info.plist in Resources */,
+				4B1FFA0E241F8172005A8299 /* Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

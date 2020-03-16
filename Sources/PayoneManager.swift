@@ -7,9 +7,8 @@
 //
 
 import Foundation
-import PubNub
 
-public class PayoneTransaction {
+public struct PayoneTransaction {
     var invoiceid: String?
     var amount: Int
     var currency: PayoneCurrencyCode?
@@ -20,11 +19,11 @@ public class PayoneTransaction {
         amount = 0
     }
     
-    static func createUniqueTransaction(invoiceid: String? = nil, amount: Int, currency: PayoneCurrencyCode, description: String? = nil, reference: String? = nil) -> PayoneTransaction {
+    public static func createUniqueTransaction(invoiceid: String? = nil, amount: Int, currency: PayoneCurrencyCode, description: String? = nil, reference: String? = nil) -> PayoneTransaction {
         // Amount must be less than 13 characters
         assert("\(amount)".count < 13, "Amount must be up to 13 characters")
         
-        let transaction = PayoneTransaction()
+        var transaction = PayoneTransaction()
         // Create a unique transaction ID
         transaction.reference = UUID().uuidString.lowercased()
         transaction.invoiceid = invoiceid
@@ -46,7 +45,7 @@ public class PayoneManager {
     
     // For listening if payment was done
 
-    init?(mcid: String) {
+    public init?(mcid: String) {
         // perform some initialization here
         if mcid.isEmpty { return nil }
         self.mcid = mcid

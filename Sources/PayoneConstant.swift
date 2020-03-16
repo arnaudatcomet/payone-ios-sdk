@@ -8,7 +8,7 @@
 
 import Foundation
 
-enum PayoneCurrencyCode: Int {
+public enum PayoneCurrencyCode: Int {
     case LAK = 418
     case USD = 480
     case THB = 764

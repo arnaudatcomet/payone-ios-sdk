@@ -14,7 +14,11 @@ class ViewController: UIViewController {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
     
-        let manager: PayoneManager = PayoneManager()
+        if let manager = PayoneManager(mcid: "mch5e436d803c35d") {
+            let transaction: PayoneTransaction = PayoneTransaction.createUniqueTransaction(amount: 1, currency: PayoneCurrencyCode.LAK)
+            let qrcodeValue = manager.getQRCodeInfo(transaction: transaction)
+            print("Generated QRCode for a payment of 1LAK : \(qrcodeValue)")
+        }
     }
 
 
