@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import PubNub
 
 public class PayoneTransaction {
     var invoiceid: String?
@@ -82,6 +83,8 @@ public class PayoneManager {
         return result
     }
     
+    /// Generate a representation string deducted from a PayoneTransaction object. This string can be passed to generate a QRCode using CIFilter
+    /// - Parameter transaction: an object of PayoneTransaction, containing a mandatory amount and currency
     public func getQRCodeInfo(transaction: PayoneTransaction) -> String?{
         assert(self.mcid != nil, "MCID must not be empty")
         let mcc = "4111"

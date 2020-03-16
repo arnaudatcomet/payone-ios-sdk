@@ -1,0 +1,28 @@
+{
+  "name": "PayOneSDK",
+  "version": "0.0.1",
+  "summary": "PayOneSDK is used to integrate PayOne from BCEL to your iOS app",
+  "description": "PayOneSDK iOS is used to integrate PayOne QRCode payment solution into mobile apps. Powered by Comet Digital Agency",
+  "homepage": "https://github.com/arnaudatcomet/payone-ios-sdk",
+  "license": "MIT",
+  "authors": {
+    "Arnaud Phommasone": "arnaud@comet.com"
+  },
+  "platforms": {
+    "ios": "9.0"
+  },
+  "source": {
+    "git": "https://github.com/arnaudatcomet/payone-ios-sdk.git",
+    "tag": "0.0.1"
+  },
+  "source_files": [
+    "Classes",
+    "Classes/**/*.{h,m}"
+  ],
+  "exclude_files": "Classes/Exclude",
+  "dependencies": {
+    "PubNub": [
+      "~> 4.12.0"
+    ]
+  }
+}
