@@ -7,11 +7,20 @@
 //
 
 import Foundation
+import PubNub
 
-public struct PayoneTransaction {
+
+public struct POStore {
+    var mcid: String
+    var terminalid: String = "101"
+    var country = "LA"
+    var province = "VTE"
+}
+
+public struct POTransaction {
     var invoiceid: String?
     var amount: Int
-    var currency: PayoneCurrencyCode?
+    var currency: POCurrencyCode?
     var description: String?
     var reference: String?
     
@@ -19,11 +28,11 @@ public struct PayoneTransaction {
         amount = 0
     }
     
-    public static func createUniqueTransaction(invoiceid: String? = nil, amount: Int, currency: PayoneCurrencyCode, description: String? = nil, reference: String? = nil) -> PayoneTransaction {
+    public static func createUniqueTransaction(invoiceid: String? = nil, amount: Int, currency: POCurrencyCode, description: String? = nil, reference: String? = nil) -> POTransaction {
         // Amount must be less than 13 characters
         assert("\(amount)".count < 13, "Amount must be up to 13 characters")
         
-        var transaction = PayoneTransaction()
+        var transaction = POTransaction()
         // Create a unique transaction ID
         transaction.reference = UUID().uuidString.lowercased()
         transaction.invoiceid = invoiceid
@@ -34,7 +43,7 @@ public struct PayoneTransaction {
     }
 }
 
-public class PayoneManager {
+public class POManager {
     // Bank providing these data
     var iin: String = "BCEL"
     var applicationid: String = "ONEPAY"
@@ -84,7 +93,7 @@ public class PayoneManager {
     
     /// Generate a representation string deducted from a PayoneTransaction object. This string can be passed to generate a QRCode using CIFilter
     /// - Parameter transaction: an object of PayoneTransaction, containing a mandatory amount and currency
-    public func getQRCodeInfo(transaction: PayoneTransaction) -> String?{
+    public func getQRCodeInfo(transaction:POTransaction) -> String?{
         assert(self.mcid != nil, "MCID must not be empty")
         let mcc = "4111"
         let ccy: String = "\(String(describing: transaction.currency?.rawValue ?? 0))"
