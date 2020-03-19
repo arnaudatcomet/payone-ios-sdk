@@ -20,7 +20,6 @@ public typealias POMessageData = PNMessageData
 public typealias POPresenceEventResult = PNPresenceEventResult
 public typealias POSubscribeStatus = PNSubscribeStatus
 public typealias POStatusCategory = PNStatusCategory
-
 public typealias POSignalResult = PNSignalResult
 public typealias POSpaceEventResult = PNSpaceEventResult
 public typealias POMembershipEventResult = PNMembershipEventResult
@@ -141,10 +140,10 @@ public struct POQrcodeGenerator {
 
 /// A Store containing the merchandise ID (mcid), a terminal ID for POS system (terminalid), the country and the province of the shop
 public struct POStore {
-    var mcid: String
-    var terminalid: String?
-    var country: String
-    var province: String
+    public var mcid: String
+    public var terminalid: String?
+    public var country: String
+    public var province: String
     
     public init(mcid: String, country: String, province: String, terminalID: String? = nil) {
         self.mcid = mcid
@@ -155,26 +154,26 @@ public struct POStore {
 }
 
 public struct POTransaction {
-    var invoiceid: String?
-    var amount: Int
-    var currency: POCurrencyCode?
-    var description: String?
-    var reference: String?
+    public var invoiceid: String?
+    public var amount: Int
+    public var currency: POCurrencyCode?
+    public var description: String?
+    public var reference: String?
     
-    init() {
+    public init() {
         amount = 0
     }
     
-    public static func createUniqueTransaction(invoiceid: String? = nil, amount: Int, currency: POCurrencyCode, description: String? = nil, reference: String? = nil) -> POTransaction {
+    public static func createUniqueTransaction(amount: Int, currency: POCurrencyCode, description: String) -> POTransaction {
         // Amount must be less than 13 characters
         assert("\(amount)".count < 13, "Amount must be up to 13 characters")
         
         var transaction = POTransaction()
         // Create a unique transaction ID
         transaction.reference = UUID().uuidString.lowercased()
-        transaction.invoiceid = invoiceid
         transaction.amount = amount
         transaction.currency = currency
+        transaction.description = description
         
         return transaction
     }
@@ -203,6 +202,8 @@ public class POManager: NSObject {
     }
 
     // There will be a closure to listen when there's a presence
+    
+    // TODO: Move publish and subscribe key to a constant / init functions
     public func start(qrcode: POQrcodeImage) {
         let configuration = PNConfiguration(publishKey: "sub-c-91489692-fa26-11e9-be22-ea7c5aada356", subscribeKey: "sub-c-91489692-fa26-11e9-be22-ea7c5aada356")
         self.client = PubNub.clientWithConfiguration(configuration)
@@ -226,68 +227,6 @@ extension POManager: PNObjectEventListener {
       if let closure = onReceivedStatus {
           closure(status)
       }
-        if status.operation == .subscribeOperation {
-            // Check to see if the message is about a successful subscription or restore
-            if status.category == .PNConnectedCategory || status.category == .PNReconnectedCategory {
-                  
-                let subscribeStatus: PNSubscribeStatus = status as! PNSubscribeStatus
-                if subscribeStatus.category == .PNConnectedCategory {
-                      
-                }
-                else {
-                      
-                    // This usually occurs if there is a transient error. The subscribe fails but
-                     // then reconnects, and there is no longer any issue.
-                }
-            }
-            else if status.category == .PNUnexpectedDisconnectCategory {
-                  
-                // This is usually an issue with the internet connection.
-                // This is an error: handle appropriately, and retry will be called automatically.
-            }
-                // Looks like some kind of issues happened while the client tried to subscribe,
-                // or disconnected from the network.
-            else {
-                  
-                let errorStatus: PNErrorStatus = status as! PNErrorStatus
-                if errorStatus.category == .PNAccessDeniedCategory {
-                      
-                    // PAM prohibited this client from subscribing to this channel and channel group.
-                    // This is another explicit error.
-                }
-                else {
-                      
-                    /**
-                     More errors can be directly specified by creating explicit cases for other categories
-                     of `PNStatusCategory` errors, such as:
-                     - `PNDecryptionErrorCategory`
-                     - `PNMalformedFilterExpressionCategory`
-                     - `PNMalformedResponseCategory`
-                     - `PNTimeoutCategory`
-                     - `PNNetworkIssuesCategory`
-                     */
-                }
-            }
-        }
-        else if status.operation == .unsubscribeOperation {
-              
-            if status.category == .PNDisconnectedCategory {
-                  
-                // This is the expected category for an unsubscribe.
-                // There were no errors in unsubscribing from everything.
-            }
-        }
-        else if status.operation == .heartbeatOperation {
-              
-            /**
-             Heartbeat operations can have errors, so check first for an error.
-             For more information on how to configure heartbeat notifications through the status
-             PNObjectEventListener callback, consult http://www.pubnub.com/docs/swift/api-reference-configuration#configuration_basic_usage
-             */
-              
-            if !status.isError { /* Heartbeat operation was successful */ }
-            else { /* There was an error with the heartbeat operation, handle here */ }
-        }
     }
      
     // Handle a new presence event

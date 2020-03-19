@@ -34,9 +34,14 @@ class ViewController: UIViewController {
         // Do any additional setup after loading the view.
         
         // Create a store
-        let agencyStore = POStore(mcid: "mch5e436d803c35d", country: "LA", province: "VTE")
-        let transaction: POTransaction = POTransaction.createUniqueTransaction(amount: 1, currency: POCurrencyCode.LAK)
-        if let qrcodeValue: POQrcodeImage = POQrcodeGenerator.getQRCodeInfo(store: agencyStore, transaction: transaction) {
+        let store = POStore(mcid: "mch5e436d803c35d", country: "LA", province: "VTE")
+        var transaction: POTransaction = POTransaction.createUniqueTransaction(amount: 1, currency: POCurrencyCode.LAK, description: "A call from PayOneSDK")
+        // Manually set the invoice ID
+        let dateFormatterGet = DateFormatter()
+        dateFormatterGet.dateFormat = "yyyy-MM-dd HH:mm:ss"
+        transaction.invoiceid = "#INVOICE"+dateFormatterGet.string(from: Date())
+        
+        if let qrcodeValue: POQrcodeImage = POQrcodeGenerator.getQRCodeInfo(store: store, transaction: transaction) {
             qrcodeImageView?.image = generateQRCode(from: qrcodeValue.info)
             POManager.shared.start(qrcode: qrcodeValue)
             
