@@ -14,3 +14,24 @@ public enum POCurrencyCode: Int {
     case THB = 764
     case CNY = 156
 }
+
+public enum POtatusCategory: Int {
+    case POUnknownCategory = 0
+    case POAcknowledgmentCategory
+    case POAccessDeniedCategory
+    case POTimeoutCategory
+    case PONetworkIssuesCategory
+    case PORequestMessageCountExceededCategory
+    case POConnectedCategory
+    case POReconnectedCategory
+    case PODisconnectedCategory
+    case POUnexpectedDisconnectCategory
+    case POCancelledCategory
+    case POBadRequestCategory
+    case PORequestURITooLongCategory
+    case POMalformedFilterExpressionCategory
+    case POMalformedResponseCategory
+    case PODecryptionErrorCategory
+    case POTLSConnectionFailedCategory
+    case POTLSUntrustedCertificateCategory
+}

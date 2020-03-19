@@ -10,11 +10,148 @@ import Foundation
 import PubNub
 
 
+public typealias POSocketDidReceiveMessageBlock = (POMessageResult) -> Void
+public typealias POSocketDidReceiveStatusBlock = (POStatus) -> Void
+
+public typealias POStatus = PNStatus
+public typealias POMessageResult = PNMessageResult
+public typealias POResult = PNResult
+public typealias POMessageData = PNMessageData
+public typealias POPresenceEventResult = PNPresenceEventResult
+public typealias POSubscribeStatus = PNSubscribeStatus
+public typealias POStatusCategory = PNStatusCategory
+
+public typealias POSignalResult = PNSignalResult
+public typealias POSpaceEventResult = PNSpaceEventResult
+public typealias POMembershipEventResult = PNMembershipEventResult
+public typealias POUserEventResult = PNUserEventResult
+
+public struct POQrcodeImage {
+    public var info: String
+    public var mcid: String
+    public var uuid: String
+    
+    init(info: String, mcid: String, uuid: String) {
+        self.info = info
+        self.mcid = mcid
+        self.uuid = uuid
+    }
+}
+
+/// Payone helper to generate a qrcode to be able to be scanned with PayOne app
+public struct POQrcodeGenerator {
+    /// Build field such as a field number (ex: country), the value lenth and the value.
+    /// - Parameter fields: Dictionary of field number and value
+     private static func buildqr(fields: [String: Any]) -> String {
+         var result: String = ""
+         
+         // Order the keyvalues
+         let fieldsOrdered = fields.sorted(by: { $0.0 < $1.0 })
+         
+         for (key, value) in fieldsOrdered {
+             let valueToString = "\(value)"
+             if valueToString.isEmpty || valueToString == "nil" {
+                 continue
+             }
+             
+             var unwrappedValue: String = ""
+             if value is String {
+                 unwrappedValue = value as! String
+             }
+             else if value is Int {
+                 unwrappedValue = "\(value)"
+             }
+             else if value is UInt16 {
+                 unwrappedValue = "\(value)"
+             }
+             
+            let valueLength = "\(unwrappedValue.count)"
+             result += key.leftPadding(toLength: 2, withPad: "0")
+             result += valueLength.leftPadding(toLength: 2, withPad: "0")
+             result += unwrappedValue
+         }
+         return result
+     }
+    
+    /// Generate a representation string deducted from a PayoneTransaction object. This string can be passed to generate a QRCode using CIFilter
+    /// - Parameter transaction: an object of PayoneTransaction, containing a mandatory amount and currency
+    public static func getQRCodeInfo(store:POStore, transaction:POTransaction) -> POQrcodeImage?{
+        assert(POManager.shared.iin.isEmpty != true, "IIN must not be empty")
+        assert(POManager.shared.applicationid.isEmpty != true, "ApplicationID must not be empty")
+        let mcc = "4111"
+        let ccy: String = "\(String(describing: transaction.currency?.rawValue ?? 0))"
+        let country = "LA"
+        let province = "VTE"
+        
+        // You set these data
+        let amount = transaction.amount
+        let invoiceid = transaction.invoiceid
+        let transactionid = transaction.reference
+        let terminalid = store.terminalid
+        let description = transaction.description
+      
+        var qrcodeRaw: String = buildqr(fields: [
+          "00" : "01",
+          "01" : "11",
+          "33" : buildqr(fields: [
+            "00" : POManager.shared.iin,
+            "01" : POManager.shared.applicationid,
+            "02" : store.mcid
+          ]),
+          "52" : mcc,
+          "53" : ccy,
+          "54" : amount,
+          "58" : country,
+          "60" : province,
+          "62" : buildqr(fields: [
+              "01" : invoiceid ?? nil,
+              "05" : transactionid ?? nil,
+              "07" : terminalid,
+              "8" : description ?? nil
+          ]),
+        ])
+        
+        qrcodeRaw += buildqr(fields: [
+                      "63" : crc16ccitt(data: (qrcodeRaw + "6304").utf8.map{$0}),
+                  ])
+        
+        return POQrcodeImage(info: qrcodeRaw, mcid: store.mcid, uuid: transaction.reference ?? "")
+    }
+    
+    /// Checksum implementation of crc16 polynomial
+    /// - Parameter data: Data in UInt8
+    /// - Parameter polynome: polynome
+    /// - Parameter start: start byte
+    /// - Parameter final: end byte
+    private static func crc16ccitt(data: [UInt8], polynome: UInt16 = 0x1021, start: UInt16 = 0xffff, final: UInt16 = 0)->UInt16{
+        var crc = start
+        data.forEach { (byte) in
+            crc ^= UInt16(byte) << 8
+            crc &= 0xffff
+            (0..<8).forEach({ _ in
+                crc = (crc & UInt16(0x8000)) != 0 ? (crc << 1) ^ polynome : crc << 1
+                crc &= UInt16(0xffff)
+            })
+        }
+        crc ^= final
+        return crc
+    }
+}
+
+
+/// A Store containing the merchandise ID (mcid), a terminal ID for POS system (terminalid), the country and the province of the shop
 public struct POStore {
     var mcid: String
-    var terminalid: String = "101"
-    var country = "LA"
-    var province = "VTE"
+    var terminalid: String?
+    var country: String
+    var province: String
+    
+    public init(mcid: String, country: String, province: String, terminalID: String? = nil) {
+        self.mcid = mcid
+        self.terminalid = terminalID
+        self.country = country
+        self.province = province
+    }
 }
 
 public struct POTransaction {
@@ -43,110 +180,166 @@ public struct POTransaction {
     }
 }
 
-public class POManager {
-    // Bank providing these data
-    var iin: String = "BCEL"
-    var applicationid: String = "ONEPAY"
-    var mcid: String
-    var terminalid: String = "101"
-    var country = "LA"
-    var province = "VTE"
+public class POManager: NSObject {
+    var iin: String
+    var applicationid: String
     
-    // For listening if payment was done
+    // Singleton part
+    public static let shared = POManager(iin: "BCEL", applicationid: "ONEPAY")
+    
+    /// Websocket listening to Pubnub channel
+    var client: PubNub!
+    
+    
+    /// Handle a new message from a subscribed channel
+    public var onReceivedMessage: POSocketDidReceiveMessageBlock?
+    
+    /// Handle a subscription status change
+    public var onReceivedStatus: POSocketDidReceiveStatusBlock?
+    
+    public init(iin: String, applicationid: String) {
+        self.iin = iin
+        self.applicationid = applicationid
+    }
 
-    public init?(mcid: String) {
-        // perform some initialization here
-        if mcid.isEmpty { return nil }
-        self.mcid = mcid
+    // There will be a closure to listen when there's a presence
+    public func start(qrcode: POQrcodeImage) {
+        let configuration = PNConfiguration(publishKey: "sub-c-91489692-fa26-11e9-be22-ea7c5aada356", subscribeKey: "sub-c-91489692-fa26-11e9-be22-ea7c5aada356")
+        self.client = PubNub.clientWithConfiguration(configuration)
+        self.client.addListener(self)
+        self.client.subscribeToChannels(["uuid-" + qrcode.mcid + "-" + qrcode.uuid], withPresence: false)
     }
-   
-    private func buildqr(fields: [String: Any]) -> String {
-        var result: String = ""
-        
-        // Order the keyvalues
-        let fieldsOrdered = fields.sorted(by: { $0.0 < $1.0 })
-        
-        for (key, value) in fieldsOrdered {
-            let valueToString = "\(value)"
-            if valueToString.isEmpty || valueToString == "nil" {
-                continue
-            }
-            
-            var unwrappedValue: String = ""
-            if value is String {
-                unwrappedValue = value as! String
-            }
-            else if value is Int {
-                unwrappedValue = "\(value)"
-            }
-            else if value is UInt16 {
-                unwrappedValue = "\(value)"
-            }
-            
-           let valueLength = "\(unwrappedValue.count)"
-            result += key.leftPadding(toLength: 2, withPad: "0")
-            result += valueLength.leftPadding(toLength: 2, withPad: "0")
-            result += unwrappedValue
+}
+
+extension POManager: PNObjectEventListener {
+    // Handle a new message from a subscribed channel
+    public func client(_ client: PubNub, didReceiveMessage message: PNMessageResult) {
+        // Reference to the channel group containing the chat the message was sent to
+        print("\(message.data.publisher) sent message to '\(message.data.channel)' at \(message.data.timetoken): \(message.data.message)")
+        if let closure = onReceivedMessage {
+            closure(message)
         }
-        return result
     }
-    
-    /// Generate a representation string deducted from a PayoneTransaction object. This string can be passed to generate a QRCode using CIFilter
-    /// - Parameter transaction: an object of PayoneTransaction, containing a mandatory amount and currency
-    public func getQRCodeInfo(transaction:POTransaction) -> String?{
-        assert(self.mcid != nil, "MCID must not be empty")
-        let mcc = "4111"
-        let ccy: String = "\(String(describing: transaction.currency?.rawValue ?? 0))"
-        let country = "LA"
-        let province = "VTE"
-        
-        // You set these data
-        let amount = transaction.amount
-        let invoiceid = transaction.invoiceid
-        let transactionid = transaction.reference
-        let terminalid = self.terminalid
-        let description = transaction.description
       
-        var qrcodeRaw: String = buildqr(fields: [
-          "00" : "01",
-          "01" : "11",
-          "33" : buildqr(fields: [
-            "00" : self.iin,
-            "01" : self.applicationid,
-            "02" : self.mcid
-          ]),
-          "52" : mcc,
-          "53" : ccy,
-          "54" : amount,
-          "58" : country,
-          "60" : province,
-          "62" : buildqr(fields: [
-              "01" : invoiceid ?? nil,
-              "05" : transactionid ?? nil,
-              "07" : terminalid,
-              "8" : description ?? nil
-          ]),
-        ])
-        
-        qrcodeRaw += buildqr(fields: [
-                      "63" : crc16ccitt(data: (qrcodeRaw + "6304").utf8.map{$0}),
-                  ])
-        
-        return qrcodeRaw
-    }
-    
-    private func crc16ccitt(data: [UInt8], polynome: UInt16 = 0x1021, start: UInt16 = 0xffff, final: UInt16 = 0)->UInt16{
-        var crc = start
-        data.forEach { (byte) in
-            crc ^= UInt16(byte) << 8
-            crc &= 0xffff
-            (0..<8).forEach({ _ in
-                crc = (crc & UInt16(0x8000)) != 0 ? (crc << 1) ^ polynome : crc << 1
-                crc &= UInt16(0xffff)
-            })
+    // Handle a subscription status change
+    public func client(_ client: PubNub, didReceive status: PNStatus) {
+      if let closure = onReceivedStatus {
+          closure(status)
+      }
+        if status.operation == .subscribeOperation {
+            // Check to see if the message is about a successful subscription or restore
+            if status.category == .PNConnectedCategory || status.category == .PNReconnectedCategory {
+                  
+                let subscribeStatus: PNSubscribeStatus = status as! PNSubscribeStatus
+                if subscribeStatus.category == .PNConnectedCategory {
+                      
+                }
+                else {
+                      
+                    // This usually occurs if there is a transient error. The subscribe fails but
+                     // then reconnects, and there is no longer any issue.
+                }
+            }
+            else if status.category == .PNUnexpectedDisconnectCategory {
+                  
+                // This is usually an issue with the internet connection.
+                // This is an error: handle appropriately, and retry will be called automatically.
+            }
+                // Looks like some kind of issues happened while the client tried to subscribe,
+                // or disconnected from the network.
+            else {
+                  
+                let errorStatus: PNErrorStatus = status as! PNErrorStatus
+                if errorStatus.category == .PNAccessDeniedCategory {
+                      
+                    // PAM prohibited this client from subscribing to this channel and channel group.
+                    // This is another explicit error.
+                }
+                else {
+                      
+                    /**
+                     More errors can be directly specified by creating explicit cases for other categories
+                     of `PNStatusCategory` errors, such as:
+                     - `PNDecryptionErrorCategory`
+                     - `PNMalformedFilterExpressionCategory`
+                     - `PNMalformedResponseCategory`
+                     - `PNTimeoutCategory`
+                     - `PNNetworkIssuesCategory`
+                     */
+                }
+            }
         }
-        crc ^= final
-        return crc
+        else if status.operation == .unsubscribeOperation {
+              
+            if status.category == .PNDisconnectedCategory {
+                  
+                // This is the expected category for an unsubscribe.
+                // There were no errors in unsubscribing from everything.
+            }
+        }
+        else if status.operation == .heartbeatOperation {
+              
+            /**
+             Heartbeat operations can have errors, so check first for an error.
+             For more information on how to configure heartbeat notifications through the status
+             PNObjectEventListener callback, consult http://www.pubnub.com/docs/swift/api-reference-configuration#configuration_basic_usage
+             */
+              
+            if !status.isError { /* Heartbeat operation was successful */ }
+            else { /* There was an error with the heartbeat operation, handle here */ }
+        }
+    }
+     
+    // Handle a new presence event
+    public func client(_ client: PubNub, didReceivePresenceEvent event: PNPresenceEventResult) {
+          
+        // Handle presence event event.data.presenceEvent (one of: join, leave, timeout, state-change).
+        if event.data.channel != event.data.subscription {
+              
+            // Presence event received on a channel group stored in event.data.subscription
+        }
+        else {
+              
+            // Presence event received on a channel stored in event.data.channel
+        }
+          
+        if event.data.presenceEvent != "state-change" {
+              
+            print("\(event.data.presence.uuid) \"\(event.data.presenceEvent)'ed\"\n" +
+                  "at: \(event.data.presence.timetoken) on \(event.data.channel) " +
+                  "(Occupancy: \(event.data.presence.occupancy))");
+        }
+        else {
+              
+            print("\(event.data.presence.uuid) changed state at: " +
+                  "\(event.data.presence.timetoken) on \(event.data.channel) to:\n" +
+                  "\(event.data.presence.state)");
+        }
+    }
+     
+    // Handle a new signal from a subscribed channel
+    public func client(_ client: PubNub, didReceiveSignal signal: PNSignalResult) {
+        print("\(signal) sent signal to")
+    }
+
+    // Handle a new user event (update or delete) from a subscribed user channel
+    public func client(_ client: PubNub, didReceiveUserEvent event: PNUserEventResult) {
+        print("'\(event.data.identifier)' user has been \(event.data.event)'ed at \(event.data.timestamp)")
+    }
+
+    // Handle a new space event (update or delete) from a subscribed space channel
+    public func client(_ client: PubNub, didReceiveSpaceEvent event: PNSpaceEventResult) {
+        print("'\(event.data.identifier)' space has been \(event.data.event)'ed at \(event.data.timestamp)")
+    }
+
+    // Handle a new membership event from a subscribed user or space channel
+    public func client(_ client: PubNub, didReceiveMembershipEvent event: PNMembershipEventResult) {
+        print("Membership between '\(event.data.userId)' user '\(event.data.spaceId)' space has been \(event.data.event)'ed at \(event.data.timestamp)")
+    }
+
+    // Handle message actions (added or removed) from one of channels on which client has been subscribed.
+    public func client(_ client: PubNub, didReceiveMessageAction action: PNUserEventResult) {
+        print("'\(action.data) action with")
     }
 }
 
