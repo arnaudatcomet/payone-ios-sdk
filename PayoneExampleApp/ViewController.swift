@@ -35,16 +35,24 @@ class ViewController: UIViewController {
         
         // Create a store
         let store = POStore(mcid: "mch5e436d803c35d", country: "LA", province: "VTE")
-        var transaction: POTransaction = POTransaction.createUniqueTransaction(amount: 1, currency: POCurrencyCode.LAK, description: "A call from PayOneSDK")
-        // Manually set the invoice ID
+        
+        // Create a transaction
+        var transaction: POTransaction = POTransaction.createUniqueTransaction(amount: 1, currency: POCurrencyCode.LAK, description: "A call from PayOneSDK iOS")
+        
+        // Manually set the invoice ID as it's non mandatory
         let dateFormatterGet = DateFormatter()
         dateFormatterGet.dateFormat = "yyyy-MM-dd HH:mm:ss"
         transaction.invoiceid = "#INVOICE"+dateFormatterGet.string(from: Date())
         
+        // Generate the qrcode raw value
         if let qrcodeValue: POQrcodeImage = POQrcodeGenerator.getQRCodeInfo(store: store, transaction: transaction) {
+            // Set into a QRCode image
             qrcodeImageView?.image = generateQRCode(from: qrcodeValue.info)
+            
+            // Start listening to payment
             POManager.shared.start(qrcode: qrcodeValue)
             
+            // Check if socket is connected to payment gateways
             POManager.shared.onReceivedStatus = { status in
                 print("status has change \(status)")
                 if status.operation == .subscribeOperation {
@@ -62,6 +70,7 @@ class ViewController: UIViewController {
                 }
             }
             
+            // Check if received message from socket
             POManager.shared.onReceivedMessage = { message in
                 let subscription = message.data.subscription
                 print("\(message.data.publisher) sent message to '\(message.data.channel)' at \(message.data.timetoken): \(message.data.message)")
